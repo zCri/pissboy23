@@ -1,55 +1,61 @@
 using System;
-using System.Collections.Generic;
 
 namespace pissboy23 {
 
     public class CPU : Component {
 
-        public static Clock clock;
-        public static Registers registers;
+        public Clock clock;
+        public Registers registers;
 
-        public Func<int>[] opcodes8 = new Func<int>[] { // returns machine cycles taken
+        public Func<int>[] opcodes8;
+
+        public void Reset() {
+            clock.m = clock.t = 0;
+            registers.A = registers.B = registers.C = registers.D = registers.E = registers.H = registers.L = registers.F = 0;
+            registers.PC = registers.SP = 0;
+            registers.M = registers.T = 0;
+
+            opcodes8 = new Func<int>[] { // returns machine cycles taken
             () => { // 0x00 NOP
-                registers.pc++;
+                registers.PC++;
                 return 1;
             },
             () => { // 0x01 LD BC, d16
-                registers.b = GameBoy.memory.ReadByte(registers.pc);
-                registers.pc++;
-                registers.c = GameBoy.memory.ReadByte(registers.pc);
-                registers.pc++;
+                registers.B = GameBoy.memory.ReadByte(registers.PC);
+                registers.PC++;
+                registers.C = GameBoy.memory.ReadByte(registers.PC);
+                registers.PC++;
                 return 3;
             },
             () => { // 0x02 LD (BC), A
-                ushort address = (ushort) ((registers.c << 8) + registers.b);
-                GameBoy.memory.WriteByte(address, registers.a);
+                ushort address = (ushort) ((registers.C << 8) + registers.B);
+                GameBoy.memory.WriteByte(address, registers.A);
                 return 2;
             },
             () => { // 0x03 INC BC
-                registers.b++;
-                registers.c++;
+                registers.B++;
+                registers.C++;
                 return 2;
             },
             () => { // 0x04 INC B
-                registers.b++;
+                registers.B++;
                 return 1;
             },
             () => { // 0x05 DEC B
-                registers.b--;
+                registers.B--;
                 return 1;
             },
             () => { // 0x06 LD B, d8
-                registers.b = GameBoy.memory.ReadByte(registers.pc);
-                registers.pc++;
+                registers.B = GameBoy.memory.ReadByte(registers.PC);
+                registers.PC++;
                 return 2;
             },
             () => { // 0x07 RLCA
-                registers.a = (byte) ((registers.a >> 7) | ((registers.a & 0x7f) << 1));
+                registers.A = (byte) ((registers.A >> 7) | ((registers.A & 0x7f) << 1));
                 return 1;
             }
         };
-        
-        public void reset(){}
+        }
     }
 
     public struct Clock {
@@ -57,8 +63,8 @@ namespace pissboy23 {
     }
 
     public struct Registers {
-        public byte a, b, c, d, e, h, l, f;
-        public ushort pc, sp;
-        public int m, t;
+        public byte A, B, C, D, E, H, L, F;
+        public ushort PC, SP;
+        public int M, T;
     }
 }
