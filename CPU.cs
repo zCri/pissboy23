@@ -19,53 +19,258 @@ namespace pissboy23 {
             #region Opcodes
 
             opcodes8 = new Func<int>[] { // returns machine cycles taken
-            () => { // 0x00 NOP
-                return 1;
-            },
-            () => { // 0x01 LD BC, d16
-                registers.BC = GameBoy.memory.ReadWord(registers.PC);
-                registers.PC += 2;
-                return 3;
-            },
-            () => { // 0x02 LD (BC), A
-                GameBoy.memory.WriteByte(registers.BC, registers.A);
-                return 2;
-            },
-            () => { // 0x03 INC BC
-                registers.BC++;
-                return 2;
-            },
-            () => { // 0x04 INC B
-                INC(registers.B);
-                return 1;
-            },
-            () => { // 0x05 DEC B
-                DEC(registers.B);
-                return 1;
-            },
-            () => { // 0x06 LD B, d8
-                registers.B = GameBoy.memory.ReadByte(registers.PC);
-                registers.PC++;
-                return 2;
-            },
-            () => { // 0x07 RLCA
-                flags.Z = false;
-                flags.N = false;
-                flags.H = false;
-                flags.C = (registers.A & 0x80) != 0;
-                registers.A = (byte) ((registers.A >> 7) | (registers.A << 1));
-                return 1;
-            },
-            () => { // 0x08 LD (a16), SP
-                GameBoy.memory.WriteWord(GameBoy.memory.ReadWord(registers.PC), registers.SP);
-                registers.PC += 2;
-                return 5;
-            },
-            () => { // 0x09 ADD
-                ADD(registers.BC);
-                return 2;
-            }
-        };
+                () => { // 0x00 NOP
+                    return 1;
+                },
+                () => { // 0x01 LD BC, d16
+                    registers.BC = (ushort) GameBoy.memory.ReadWord(registers.PC);
+                    registers.PC++;
+                    return 3;
+                },
+                () => { // 0x02 LD (BC), A
+                    GameBoy.memory.WriteByte(registers.BC, registers.A);
+                    return 2;
+                },
+                () => { // 0x03 INC BC
+                    registers.BC++;
+                    return 2;
+                },
+                () => { // 0x04 INC B
+                    ALU.INC(registers.B);
+                    return 1;
+                },
+                () => { // 0x05 DEC B
+                    ALU.DEC(registers.B);
+                    return 1;
+                },
+                () => { // 0x06 LD B, d8
+                    registers.B = GameBoy.memory.ReadByte(registers.PC);
+                    return 2;
+                },
+                () => { // 0x07 RLCA
+                    flags.Z = false;
+                    flags.N = false;
+                    flags.H = false;
+                    flags.C = (registers.A & 0x80) != 0;
+
+                    registers.A = (byte) ((registers.A >> 7) | (registers.A << 1));
+                    return 1;
+                },
+                () => { // 0x08 LD (a16), SP
+                    GameBoy.memory.WriteWord((ushort) GameBoy.memory.ReadWord(registers.PC), (short) registers.SP);
+                    registers.PC++;
+                    return 5;
+                },
+                () => { // 0x09 ADD HL, BC
+                    ALU.ADD(registers.BC);
+                    return 2;
+                },
+                () => { // 0x0A LD A, (BC)
+                    registers.A = GameBoy.memory.ReadByte(registers.BC);
+                    return 2;
+                },
+                () => { // 0x0B DEC BC
+                    registers.BC--;
+                    return 2;
+                },
+                () => { // 0x0C INC C
+                    ALU.INC(registers.C);
+                    return 1;
+                },
+                () => { // 0x0D DEC C
+                    ALU.DEC(registers.C);
+                    return 1;
+                },
+                () => { // 0x0E LD C, d8
+                    registers.C = GameBoy.memory.ReadByte(registers.PC);
+                    return 2;
+                },
+                () => { // 0x0F RRCA
+                    return 0; // TODO
+                },
+                () => { // 0x10 STOP
+                    return 1; // TODO should anything be here?
+                },
+                () => { // 0x11 LD DE, d16
+                    registers.DE = (ushort) GameBoy.memory.ReadWord(registers.PC);
+                    registers.PC++;
+                    return 3;
+                },
+                () => { // 0x12 LD (DE), A
+                    GameBoy.memory.WriteByte(registers.DE, registers.A);
+                    return 2;
+                },
+                () => { // 0x13 INC DE
+                    registers.DE++;
+                    return 2;
+                },
+                () => { // 0x14 INC D
+                    ALU.INC(registers.D);
+                    return 1;
+                },
+                () => { // 0x15 DEC D
+                    ALU.DEC(registers.D);
+                    return 1;
+                },
+                () => { // 0x16 LD D, d8
+                    registers.D = GameBoy.memory.ReadByte(registers.PC);
+                    return 2;
+                },
+                () => { // 0x17 RLA
+                    return 0; // TODO
+                },
+                () => { // 0x18 JR s8
+                    // TODO check if correct
+                    registers.PC += (ushort) ((sbyte) GameBoy.memory.ReadByte(registers.PC) + 1);
+                    return 3;
+                },
+                () => { // 0x19 ADD HL, DE
+                    ALU.ADD(registers.DE);
+                    return 2;
+                },
+                () => { // 0x1A LD A, (DE)
+                    registers.A = GameBoy.memory.ReadByte(registers.DE);
+                    return 2;
+                },
+                () => { // 0x1B DEC DE
+                    registers.DE--;
+                    return 2;
+                },
+                () => { // 0x1C INC E
+                    ALU.INC(registers.E);
+                    return 1;
+                },
+                () => { // 0x1D DEC E
+                    ALU.DEC(registers.E);
+                    return 1;
+                },
+                () => { // 0x1E LD E, d8
+                    registers.E = GameBoy.memory.ReadByte(registers.PC);
+                    return 2;
+                },
+                () => { // 0x1F RRA
+                    return 0; // TODO
+                },
+                () => { // 0x20 JR NZ, s8
+                    // TODO check if correct
+                    if(flags.Z) {
+                        return 2;
+                    } else {
+                        registers.PC += (ushort) ((sbyte) GameBoy.memory.ReadByte(registers.PC) + 1);
+                        return 3;
+                    }
+                },
+                () => { // 0x21 LD HL, d16
+                    registers.HL = (ushort) GameBoy.memory.ReadWord(registers.PC);
+                    registers.PC++;
+                    return 3;
+                },
+                () => { // 0x22 LD (HL+), A
+                    GameBoy.memory.WriteByte(registers.HL++, registers.A);
+                    return 2;
+                },
+                () => { // 0x23 INC HL
+                    registers.HL++;
+                    return 2;
+                },
+                () => { // 0x24 INC H
+                    ALU.INC(registers.H);
+                    return 1;
+                },
+                () => { // 0x25 DEC H
+                    ALU.DEC(registers.H);
+                    return 1;
+                },
+                () => { // 0x26 LD H, d8
+                    registers.H = GameBoy.memory.ReadByte(registers.PC);
+                    return 2;
+                },
+                () => { // 0x27 DAA
+                    return 0; // TODO fuck you
+                },
+                () => { // 0x28 JR Z, s8
+                    // TODO check if correct
+                    if(!flags.Z) {
+                        return 2;
+                    } else {
+                        registers.PC += (ushort) ((sbyte) GameBoy.memory.ReadByte(registers.PC) + 1);
+                        return 3;
+                    }
+                },
+                () => { // 0x29 ADD HL, HL
+                    ALU.ADD(registers.HL);
+                    return 2;
+                },
+                () => { // 0x2A LD A, (HL+)
+                    // TODO check
+                    registers.A = GameBoy.memory.ReadByte(registers.HL++);
+                    return 2;
+                },
+                () => { // 0x2B DEC HL
+                    registers.HL--;
+                    return 2;
+                },
+                () => { // 0x2C INC L
+                    ALU.INC(registers.L);
+                    return 1;
+                },
+                () => { // 0x2D DEC L
+                    ALU.DEC(registers.L);
+                    return 1;
+                },
+                () => { // 0x2E LD L, d8
+                    registers.L = GameBoy.memory.ReadByte(registers.PC);
+                    return 2;
+                },
+                () => { // 0x2F CPL
+                    flags.N = true;
+                    flags.H = true;
+
+                    registers.A = (byte) ~registers.A;
+                    return 1;
+                },
+                () => { // 0x30 JR NC, s8
+                    // TODO check if correct
+                    if(flags.C) {
+                        return 2;
+                    } else {
+                        registers.PC += (ushort) ((sbyte) GameBoy.memory.ReadByte(registers.PC) + 1);
+                        return 3;
+                    }
+                },
+                () => { // 0x31 LD SP, d16
+                    registers.SP = (ushort) GameBoy.memory.ReadWord(registers.PC);
+                    registers.PC++;
+                    return 3;
+                },
+                () => { // 0x32 LD (HL-), A
+                    GameBoy.memory.WriteByte(registers.HL--, registers.A);
+                    return 2;
+                },
+                () => { // 0x33 INC SP
+                    registers.SP++;
+                    return 2;
+                },
+                () => { // 0x34 INC (HL)
+                    // TODO
+                    return 3;
+                },
+                () => { // 0x35 DEC (HL)
+                    // TODO
+                    return 3;
+                },
+                () => { // 0x36 LD H, d8
+                    GameBoy.memory.WriteByte(registers.HL, GameBoy.memory.ReadByte(registers.PC));
+                    return 3;
+                },
+                () => { // 0x37 SCF
+                    flags.N = false;
+                    flags.H = false;
+                    flags.C = true;
+
+                    return 1;
+                }
+            };
             #endregion
         }
 
