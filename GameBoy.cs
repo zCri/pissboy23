@@ -8,5 +8,9 @@
             CPU = new CPU();
             memory = new Memory();
         }
+
+        public GameBoy() {
+            Reset();
+        }
     }
 }

@@ -101,9 +101,9 @@
         }
 
         public ushort ReadWord(ushort addr) {
-            ushort upper = ReadByte(addr);
-            ushort lower = (ushort) (ReadByte((ushort) (addr + 1)) << 8);
-            return (ushort) (upper + lower);
+            ushort lower = ReadByte(addr);
+            ushort upper = (ushort) (ReadByte((ushort) (addr + 1)) << 8);
+            return (ushort) (upper | lower);
         }
 
         public void WriteByte(ushort addr, byte val) {
@@ -167,7 +167,7 @@
                                         zram[addr & 0x7F] = val;
                                     } else {
                                         switch(addr & 0xF0) {
-                                            
+
                                         }
                                     }
                                 }
@@ -176,6 +176,15 @@
                     }
                     break;
             }
+        }
+
+        public void WriteWord(ushort addr, ushort val) {
+            WriteByte(addr, (byte) val);
+            WriteByte((ushort) (addr + 1), (byte) (val >> 8));
+        }
+
+        public Memory() {
+            Reset();
         }
     }
 }
